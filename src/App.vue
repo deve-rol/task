@@ -4,7 +4,7 @@
       <div v-for="(item, key) in models" :key="key" class="column-wrap">
         <div class="column">
           <div
-            v-show="key > 1"
+            v-show="models.length > 2"
             @click="removeColumnByKey(key)"
             class="clear-icon"
           >
