@@ -1,22 +1,37 @@
 <template>
   <div id="app">
-    <div class="column">
-      <counter :min="1" v-model="numberOne" />
-      <div class="line"></div>
-      <counter :min="1" v-model="numberTwo" />
+    <div class="calc">
+      <div v-for="(item, key) in models" :key="key" class="column-wrap">
+        <div class="column">
+          <div
+            v-show="key > 1"
+            @click="removeColumnByKey(key)"
+            class="clear-icon"
+          >
+            <svg width="8" height="8" fill="#777" viewBox="0 0 241.171 241.171">
+              <path
+                id="Close"
+                d="M138.138,120.754l99.118-98.576c4.752-4.704,4.752-12.319,0-17.011c-4.74-4.704-12.439-4.704-17.179,0 l-99.033,98.492L21.095,3.699c-4.74-4.752-12.439-4.752-17.179,0c-4.74,4.764-4.74,12.475,0,17.227l99.876,99.888L3.555,220.497 c-4.74,4.704-4.74,12.319,0,17.011c4.74,4.704,12.439,4.704,17.179,0l100.152-99.599l99.551,99.563 c4.74,4.752,12.439,4.752,17.179,0c4.74-4.764,4.74-12.475,0-17.227L138.138,120.754z"
+              />
+            </svg>
+          </div>
+
+          <counter :min="1" v-model="item[0]" />
+          <div class="line"></div>
+          <counter :min="1" v-model="item[1]" />
+        </div>
+
+        <div v-show="key !== models.length - 1" class="operator">+</div>
+      </div>
+
+      <div class="equal">=</div>
+
+      <div class="sum">{{ sum }}</div>
     </div>
 
-    <div class="operator">+</div>
-
-    <div class="column">
-      <counter :min="1" v-model="numberThree" />
-      <div class="line"></div>
-      <counter :min="1" v-model="numberFour" />
-    </div>
-
-    <div class="equal">=</div>
-
-    <div class="sum">{{ sum }}</div>
+    <button @click="addColumn" :disabled="addColumnDisabled">
+      add new element
+    </button>
   </div>
 </template>
 
@@ -29,31 +44,36 @@ export default {
   },
   data() {
     return {
-      numberOne: null,
-      numberTwo: null,
-      numberThree: null,
-      numberFour: null,
+      models: [],
     };
   },
   computed: {
     sum() {
-      if (
-        this.numberOne === null ||
-        this.numberTwo === null ||
-        this.numberThree === null ||
-        this.numberFour === null
-      )
-        return;
+      const hasNull = this.models.flat(1).includes(null);
+      if (hasNull) return "result";
 
-      const sum = this.calcSum(
-        this.numberOne / this.numberTwo,
-        this.numberThree / this.numberFour
-      );
+      let res = 0;
+      this.models.forEach((arr) => {
+        res = this.calcSum(res, arr[0] / arr[1]);
+      });
 
-      return sum.toFixed(2);
+      return res.toFixed(2);
+    },
+    addColumnDisabled() {
+      return this.models.length > 4;
     },
   },
+  mounted() {
+    this.addColumn();
+    this.addColumn();
+  },
   methods: {
+    addColumn() {
+      this.models.push([null, null]);
+    },
+    removeColumnByKey(key) {
+      this.models = this.models.filter((arr, i) => i !== key);
+    },
     calcSum(a, b) {
       const max = Math.max(a, b);
       const power = Math.ceil(Math.log10(max + 1));
@@ -70,21 +90,59 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
   min-height: 100vh;
 
-  .column {
-    width: 50px;
+  .calc {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
 
-    .line {
-      margin: 10px 0;
-      height: 1px;
-      background-color: #dddddd;
+    .column-wrap {
+      display: flex;
+      align-items: center;
+
+      .column {
+        position: relative;
+        width: 50px;
+
+        .clear-icon {
+          position: absolute;
+          top: 0;
+          right: 0;
+          display: flex;
+          background-color: #fff;
+          z-index: 1;
+          opacity: 0;
+          transition: all 0.2s;
+          cursor: pointer;
+          padding: 2px;
+
+          svg {
+            transition: all 0.2s;
+          }
+          &:hover svg {
+            fill: #000;
+          }
+        }
+        &:hover .clear-icon {
+          opacity: 1;
+        }
+
+        .line {
+          margin: 10px 0;
+          height: 1px;
+          background-color: #dddddd;
+        }
+      }
+
+      .operator {
+        margin: 0 10px;
+      }
     }
-  }
-
-  .operator,
-  .equal {
-    margin: 0 10px;
+    .equal {
+      margin: 0 10px;
+    }
   }
 }
 </style>
